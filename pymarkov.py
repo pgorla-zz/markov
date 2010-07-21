@@ -29,17 +29,13 @@ def generate_markov_text(length, table, look_forward):
     # get first character
     char = random.choice(table.keys())
     o = char
-
     for i in range(length/look_forward):
-
         newchar = return_weighted_char(table[char])
-
         if newchar:
             char = newchar
             o += newchar
         else:
             char = random.choice(table.keys())
-
     return o
 
 
@@ -49,13 +45,10 @@ def return_weighted_char(array):
     else:
         total = sum(array.values())
         rand = random.randint(1,total)
-    for weight in array:
-        if rand <= weight:
-            return weight
-            rand -= weight
-
-
-
+        for k,v in array.iteritems():
+            if rand <= v:
+                return k
+            rand -= v
 
 
 
