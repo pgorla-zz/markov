@@ -55,13 +55,23 @@ def return_weighted_char(array):
 
 
 if __name__ == '__main__':
+    import sys
     import string
-    fin = open('text/alice.txt')
+    if sys.argv[1]:
+        fil = sys.argv[1]
+    else:
+        fil = 'alice.txt'
+    if sys.argv[2]:
+        length = int(sys.argv[2])
+    else:
+        length = 600
+
+    fin = open('text/'+fil)
     text = ''
     forbid = '\\'
     for line in fin:
         text += line.translate(None,forbid).strip()
     markov = generate_markov_table(text, 4)
-    print generate_markov_text(600,markov,4)
+    print generate_markov_text(length,markov,3)
 
 
