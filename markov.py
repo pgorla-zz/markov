@@ -1,82 +1,80 @@
 #!/usr/bin/env python
 
+import sys
+import random
 import string
-from random import randint
 
-class Generate_Table():
+class Markov(object):
 
-    def __init__(self):
-        self.filename = 'text/alice.txt'
-        self.text = open(self.filename)
-        self.fulltext = self.generate_fulltext()
-        self.words_by_number = self.generate_word_list()
+    """
+    Markov-chain text generator. Translated
+    from the original PHP into Python (haykranen.nl)
+    """
 
-    def generate_fulltext(self):
-        exclude = set(string.punctuation)
-        text_ = ''
-        for line in self.text:
-            text_ += line.strip()
-        # get rid of punctuation. TODO: add back in.
-        text_ = ''.join(ch for ch in text_ if ch not in exclude)
-# TODO
-# generate_fulltext() currently churns out
-# 'atPresent', 'to\xe3\mor\ehe\x..'
-# fix?
-        return text_.split()
+    def __init__(self,text='alice.txt',length=600):
+        fil = text
+        fin = open('text/'+fil)
+        self.text = ''
+        forbid = '\\'
+        for line in fin:
+            self.text += line.translate(None,forbid).strip()
+        self.markov_table = self.generate_markov_table(self.text, 3)
+        self.length = length
 
-    def generate_word_list(self):
-        word_list_ = {}
-        for word in self.fulltext:
-            if not word_list_.has_key(word):
-                word_list_[word] = 1
+
+    def _run(self):
+
+        return self.generate_markov_text(self.length,self.markov_table,3)
+
+
+    def generate_markov_table(self, text, look_forward):
+        self.table = {}
+
+        # walk through text, make index table
+        for i in range(len(self.text)):
+            char = self.text[i:i+look_forward]
+            if char not in self.table:
+                self.table[char] = {}
+
+        # walk array again, count numbers
+        for i in range(len(self.text) - look_forward):
+            char_index = self.text[i:i+look_forward]
+            char_count = self.text[i+look_forward:i+look_forward+look_forward]
+
+            if char_count not in self.table[char_index].keys():
+                self.table[char_index][char_count] = 1
             else:
-                word_list_[word] += 1
-        return word_list_
+                self.table[char_index][char_count] += 1
 
-    def couple(self):
-
+        return self.table
 
 
-# metadata? (authorship, which text used, etc)
-# D = {}
-# D[word] = count
+    def generate_markov_text(self, length, table, look_forward):
+        # get first character
+        char = random.choice(table.keys())
+        o = char
+        for i in range(length/look_forward):
+            newchar = self.return_weighted_char(table[char])
+            if newchar:
+                char = newchar
+                o += newchar
+            else:
+                char = random.choice(table.keys())
+        return o
 
 
-class Word(Generate_Table):
-
-    def __init__(self):
-
-
-class Generate_Word_list(Generate_Table):
-    def __init__(self):
-        self.count = 0
-
-
-
-
-"""
-we need to calculate the
-probabilities between each word. hm.
-neural networks?
-but now, focus on creating this thing.
-
-Possibly working idea:
-
-{
-  'the'       : {0.9:'bear', 0.3:'Kool-Aid'},
-  'peaches'   : {0.2:'palm', 0.4:'fence'}
-  'stuff'     : {0.5:'bodies', 0.9:'turkey'}
-}
-
-{
-  word_object : {P(following_word):following_word}
-}
-"""
-
-
-
-
+    def return_weighted_char(self,array):
+        if not array:
+            return False
+        else:
+            total = sum(array.values())
+            rand = random.randint(1,total)
+            for k,v in array.iteritems():
+                if rand <= v:
+                    return k
+                rand -= v
 
 
 if __name__ == '__main__':
-    t = Generate_Table()
+    t = Markov()
+    print t._run()
