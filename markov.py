@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
-import sys
-import random
 import string
+import random
 
 class Markov(object):
 
@@ -76,5 +75,8 @@ class Markov(object):
 
 
 if __name__ == '__main__':
-    t = Markov()
+    import sys
+    if sys.argv[1]:
+        text = sys.argv[1]
+    t = Markov(text)
     print t._run()
