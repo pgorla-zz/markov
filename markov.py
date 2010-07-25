@@ -16,29 +16,32 @@ class Markov(object):
         self.text = ''
         forbid = '\\'
         for line in fin:
-            self.text += line.translate(None,forbid).strip()
-        self.markov_table = self.generate_markov_table(self.text, 3)
+            self.text += line.translate(None,forbid).strip().lower()
+        self.text_list = self.generate_markov_list(self.text)
+        self.markov_table = self.generate_markov_table(self.text_list)
         self.length = length
 
 
     def _run(self):
+        return self.generate_markov_text(self.length,self.markov_table)
 
-        return self.generate_markov_text(self.length,self.markov_table,3)
+    def generate_markov_list(self, text):
+        return text.split()
 
-
-    def generate_markov_table(self, text, look_forward):
+    def generate_markov_table(self,text_list):
         self.table = {}
 
         # walk through text, make index table
-        for i in range(len(self.text)):
-            char = self.text[i:i+look_forward]
+        for i in range(len(self.text_list)-1):
+            char = text_list[i]
             if char not in self.table:
                 self.table[char] = {}
 
         # walk array again, count numbers
-        for i in range(len(self.text) - look_forward):
-            char_index = self.text[i:i+look_forward]
-            char_count = self.text[i+look_forward:i+look_forward+look_forward]
+        for i in range(len(self.text_list)-1):
+
+            char_index = self.text_list[i]
+            char_count = self.text_list[i+1]
 
             if char_count not in self.table[char_index].keys():
                 self.table[char_index][char_count] = 1
@@ -47,19 +50,22 @@ class Markov(object):
 
         return self.table
 
+    def generate_endings_list(self,text_list):
+        pass
 
-    def generate_markov_text(self, length, table, look_forward):
+    def generate_markov_text(self, length, table):
+        o = list()
         # get first character
-        char = random.choice(table.keys())
-        o = char
-        for i in range(length/look_forward):
-            newchar = self.return_weighted_char(table[char])
-            if newchar:
-                char = newchar
-                o += newchar
+        word = random.choice(table.keys())
+        o.append(word)
+        for i in range(length):
+            newword = self.return_weighted_char(table[word])
+            if newword:
+                word = newword
+                o.append(newword)
             else:
-                char = random.choice(table.keys())
-        return o
+                word = random.choice(table.keys())
+        return ' '.join(o)
 
 
     def return_weighted_char(self,array):
@@ -68,10 +74,10 @@ class Markov(object):
         else:
             total = sum(array.values())
             rand = random.randint(1,total)
-            for k,v in array.iteritems():
-                if rand <= v:
-                    return k
-                rand -= v
+            for key,value in array.iteritems():
+                if rand <= value:
+                    return key
+                rand -= value
 
 
 if __name__ == '__main__':
