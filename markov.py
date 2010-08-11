@@ -8,13 +8,14 @@ class Markov(object):
     """
     Markov-chain text generator. Translated
     from the original PHP into Python (haykranen.nl)
+    Currently working on a generator of poetry.
     """
 
     def __init__(self,text='alice.txt',length=600):
         fil = text
         fin = open('text/'+fil)
         self.text = ''
-        forbid = '\\'
+        forbid = string.punctuation
         for line in fin:
             self.text += line.translate(None,forbid).strip().lower()
         self.text_list = self.generate_markov_list(self.text)
@@ -23,7 +24,7 @@ class Markov(object):
 
 
     def _run(self):
-        return self.generate_markov_text(self.length,self.markov_table)
+        return self.generate_poetry(self.length, self.markov_table)
 
     def generate_markov_list(self, text):
         return text.split()
@@ -33,25 +34,29 @@ class Markov(object):
 
         # walk through text, make index table
         for i in range(len(self.text_list)-1):
-            char = text_list[i]
-            if char not in self.table:
-                self.table[char] = {}
+            char = Token(text_list[i])
+            if char.token_value not in self.table:
+                self.table[char.token_value] = {}
 
         # walk array again, count numbers
-        for i in range(len(self.text_list)-1):
+        for i in range(len(text_list)-1):
 
-            char_index = self.text_list[i]
-            char_count = self.text_list[i+1]
+            char_index = Token(text_list[i])
+            char_count = Token(text_list[i+1])
 
-            if char_count not in self.table[char_index].keys():
-                self.table[char_index][char_count] = 1
+            if char_count.token_value not in self.table[char_index.token_value].keys():
+                self.table[char_index.token_value][char_count.token_value] = 1
             else:
-                self.table[char_index][char_count] += 1
+                self.table[char_index.token_value][char_count.token_value] += 1
 
         return self.table
 
-    def generate_endings_list(self,text_list):
-        pass
+    def generate_poetry(self,length,table):
+        o = list()
+        for i in range(4):
+            o.append(self.generate_markov_text(length, table))
+        return '\n'.join(o)
+
 
     def generate_markov_text(self, length, table):
         o = list()
@@ -80,9 +85,17 @@ class Markov(object):
                 rand -= value
 
 
+class Token(object):
+    def __init__(self,token):
+        self.token_ending = token[:-2]
+        self.token_value = token
+
+
 if __name__ == '__main__':
     import sys
     if sys.argv[1]:
         text = sys.argv[1]
-    t = Markov(text)
+    if sys.argv[2]:
+        length = int(sys.argv[2])
+    t = Markov(text,length)
     print t._run()
